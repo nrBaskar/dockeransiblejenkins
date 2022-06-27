@@ -57,9 +57,6 @@ node{
 def publisher = LastChanges.getLastChangesPublisher "PREVIOUS_REVISION", "SIDE", "LINE", true, true, "", "", "", "", ""
 publisher.publishLastChanges()
 def changes = publisher.getLastChanges()
-def jenkins = Jenkins.getInstance()
-def jobName = "myJob"
-def job = jenkins.getItem(jobName)
 println(changes.getEscapedDiff())
      for (commit in changes.getCommits()) {
                   println(commit)
@@ -70,13 +67,7 @@ println(changes.getEscapedDiff())
                   println(commit.getChanges())
 		  println(commitInfo.getCommitCurrentJob())
                   println(commitInfo.getCommitBuild())
-		  println "Job type: ${job.getClass()}"
-                  println "Is building: ${job.isBuilding()}"
-                  println "Is in queue: ${job.isInQueue()}"
-                  println "Last successfull build: ${job.getLastSuccessfulBuild()}"
-                  println "Last build: ${job.getLastBuild()}"
-                  println "All builds: ${job.getBuilds().collect{ it.getNumber()}}"
-                  println(commitInfo)
+		  println(commitInfo)
                   print '........----------------====================-------------------...........'
 
 }
