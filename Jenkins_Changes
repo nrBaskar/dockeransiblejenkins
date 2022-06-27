@@ -73,8 +73,7 @@ println(changes.getEscapedDiff())
                   println (commitInfo.getClass())
                   println (commitInfo.getBuilding())
                   println (commitInfo.getInQueue())
-                  println Last successfull build: (commitInfo.getLastSuccessfulBuild())
-                  println Last build: (commitInfo.getLastBuild())
+                  println Last successfull build: (job.getLastSuccessfulBuild())
                   println(commitInfo)
                   print '........----------------====================-------------------...........'
 
