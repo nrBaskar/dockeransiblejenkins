@@ -1,6 +1,7 @@
 /*This script shows how to get basic information about a job and its builds*/
 node{
  stage("last-changes") {
+ git credentialsId: 'github', 
  git url: 'https://github.com/SanjaiE/dockeransiblejenkins.git'
 def publisher = LastChanges.getLastChangesPublisher "PREVIOUS_REVISION", "SIDE", "LINE", true, true, "", "", "", "", ""
 def jenkins = Jenkins.getInstance()
