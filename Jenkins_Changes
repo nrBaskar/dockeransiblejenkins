@@ -1,8 +1,59 @@
-/*This script shows how to get basic information about a job and its builds*/
+pipeline{
+    agent any
+   
+    tools {
+      maven 'maven 3.8.5'
+    }
+    
+    environment {
+      Docker_TAG = getversion()
+    }
+
+    stages{
+        stage('last-changes'){
+            steps{
+                git credentialsId: 'github', 
+                    url: 'https://github.com/SanjaiE/dockeransiblejenkins.git'
+            }
+        }
+        
+        stage('Maven Build'){
+            steps{
+                sh "mvn clean package"
+            }
+        }
+
+         stage('Docker Build'){
+            steps{
+                sh "docker build . -t nrbaskar/hariapp:${Docker_TAG}"
+            }
+        }
+        stage('Dockerhub Push'){
+            steps{
+                withCredentials([string(credentialsId: 'docker-hub', variable: 'dockerHubPwd')]) {
+                    sh "docker login -u nrbaskar -p ${dockerHubPwd}"
+                }
+                
+                sh "docker push nrbaskar/hariapp:${Docker_TAG}"
+            }
+        }
+		     
+        stage('docker dev server'){
+            steps{
+                ansiblePlaybook credentialsId: 'dev-server', disableHostKeyChecking: true, extras: "-e DOCKER_TAG=${Docker_TAG}", installation: 'ansible', inventory: 'dev.inv', playbook: 'deploy-docker.yml'
+                
+            }
+        }
+		stage('docker test server'){
+            steps{
+                ansiblePlaybook credentialsId: 'testing-server', disableHostKeyChecking: true, extras: "-e DOCKER_TAG=${Docker_TAG}", installation: 'ansible', inventory: 'test.inv', playbook: 'deploy_test.yml'
+                
+            }
+        }
+    }
+}
 node{
  stage("last-changes") {
- git credentialsId: 'github', 
- git url: 'https://github.com/SanjaiE/dockeransiblejenkins.git'
 def publisher = LastChanges.getLastChangesPublisher "PREVIOUS_REVISION", "SIDE", "LINE", true, true, "", "", "", "", ""
 publisher.publishLastChanges()
 def changes = publisher.getLastChanges()
@@ -24,5 +75,16 @@ println(changes.getEscapedDiff())
                   println Last successfull build: (job.getLastSuccessfulBuild())
                   println Last build: (job.getLastBuild())
                   println(commitInfo)
-                  }
-                  }
+                  print '........----------------====================-------------------...........'
+
+}
+}
+}
+		
+
+def getversion(){
+    def commithash = sh label: '', returnStdout: true, script: 'git rev-parse --short HEAD'
+    return commithash
+    
+}
+
