@@ -58,7 +58,8 @@ def publisher = LastChanges.getLastChangesPublisher "PREVIOUS_REVISION", "SIDE",
 publisher.publishLastChanges()
 def changes = publisher.getLastChanges()
 println(changes.getEscapedDiff())
-     for (commit in changes.getCommits()) {
+     for (commit in changes.getCommits())
+     (commit in job.getCommits()){
                   println(commit)
                   def jobName = "myJob"
                   def job = jenkins.getItem(jobName)
@@ -72,8 +73,8 @@ println(changes.getEscapedDiff())
                   println (commitInfo.getClass())
                   println (commitInfo.getBuilding())
                   println (commitInfo.getInQueue())
-                  println Last successfull build: (job.getLastSuccessfulBuild())
-                  println Last build: (job.getLastBuild())
+                  println Last successfull build: (commitInfo.getLastSuccessfulBuild())
+                  println Last build: (commitInfo.getLastBuild())
                   println(commitInfo)
                   print '........----------------====================-------------------...........'
 
