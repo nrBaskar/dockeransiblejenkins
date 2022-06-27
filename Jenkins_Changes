@@ -1,81 +1,12 @@
-pipeline{
-    agent any
+/*This script shows how to get basic information about a job and its builds*/
+def jenkins = Jenkins.getInstance()
+def jobName = "myJob"
+def job = jenkins.getItem(jobName)
 
-    tools {
-      maven 'maven 3.8.5'
-    }
-
-    environment {
-      Docker_TAG = getversion()
-    }
-
-    stages{
-        stage('last-changes'){
-            steps{
-                git credentialsId: 'github', 
-                    url: 'https://github.com/SanjaiE/dockeransiblejenkins.git'
-            }
-        }
-
-        stage('Maven Build'){
-            steps{
-                sh "mvn clean package"
-            }
-        }
-
-         stage('Docker Build'){
-            steps{
-                sh "docker build . -t nrbaskar/hariapp:${Docker_TAG}"
-            }
-        }
-        stage('Dockerhub Push'){
-            steps{
-                withCredentials([string(credentialsId: 'docker-hub', variable: 'dockerHubPwd')]) {
-                    sh "docker login -u nrbaskar -p ${dockerHubPwd}"
-                }
-
-                sh "docker push nrbaskar/hariapp:${Docker_TAG}"
-            }
-        }
-
-        stage('docker dev server'){
-            steps{
-                ansiblePlaybook credentialsId: 'dev-server', disableHostKeyChecking: true, extras: "-e DOCKER_TAG=${Docker_TAG}", installation: 'ansible', inventory: 'dev.inv', playbook: 'deploy-docker.yml'
-
-            }
-        }
-        stage('docker test server'){
-            steps{
-                ansiblePlaybook credentialsId: 'testing-server', disableHostKeyChecking: true, extras: "-e DOCKER_TAG=${Docker_TAG}", installation: 'ansible', inventory: 'test.inv', playbook: 'deploy_test.yml'
-
-            }
-        }
-    }
-}
-node{
- stage("last-changes") {
-def publisher = LastChanges.getLastChangesPublisher "PREVIOUS_REVISION", "SIDE", "LINE", true, true, "", "", "", "", ""
-publisher.publishLastChanges()
-def changes = publisher.getLastChanges()
-println(changes.getEscapedDiff())
-     for (commit in changes.getCommits()) {
-                  println(commit)
-                  def commitInfo = commit.getCommitInfo()
-                  println(commitInfo.getCommitterName())
-                  println(commitInfo.getCommitDate())
-                  println(commitInfo.getCommitMessage())
-                  println(commit.getChanges())
-                  println(commitInfo.getCommitCurrentJob())
-                  println(commitInfo.getCommitBuild())
-                  println(commitInfo)
-                  print '........----------------====================-------------------...........'
-
-}
-}
-}
-
-def getversion(){
-    def commithash = sh label: '', returnStdout: true, script: 'git rev-parse --short HEAD'
-    return commithash
-
-}
+println "Job type: ${job.getClass()}"
+println "Is building: ${job.isBuilding()}"
+println "Is in queue: ${job.isInQueue()}"
+println "Last successfull build: ${job.getLastSuccessfulBuild()}"
+println "Last failed build: ${job.getLastFailedBuild()}"
+println "Last build: ${job.getLastBuild()}"
+println "All builds: ${job.getBuilds().collect{ it.getNumber()}}"
