@@ -1,10 +1,10 @@
 pipeline{
     agent any
-   
+
     tools {
       maven 'maven 3.8.5'
     }
-    
+
     environment {
       Docker_TAG = getversion()
     }
@@ -16,7 +16,7 @@ pipeline{
                     url: 'https://github.com/SanjaiE/dockeransiblejenkins.git'
             }
         }
-        
+
         stage('Maven Build'){
             steps{
                 sh "mvn clean package"
@@ -33,21 +33,21 @@ pipeline{
                 withCredentials([string(credentialsId: 'docker-hub', variable: 'dockerHubPwd')]) {
                     sh "docker login -u nrbaskar -p ${dockerHubPwd}"
                 }
-                
+
                 sh "docker push nrbaskar/hariapp:${Docker_TAG}"
             }
         }
-		     
+
         stage('docker dev server'){
             steps{
                 ansiblePlaybook credentialsId: 'dev-server', disableHostKeyChecking: true, extras: "-e DOCKER_TAG=${Docker_TAG}", installation: 'ansible', inventory: 'dev.inv', playbook: 'deploy-docker.yml'
-                
+
             }
         }
-		stage('docker test server'){
+        stage('docker test server'){
             steps{
                 ansiblePlaybook credentialsId: 'testing-server', disableHostKeyChecking: true, extras: "-e DOCKER_TAG=${Docker_TAG}", installation: 'ansible', inventory: 'test.inv', playbook: 'deploy_test.yml'
-                
+
             }
         }
     }
@@ -65,16 +65,17 @@ println(changes.getEscapedDiff())
                   println(commitInfo.getCommitDate())
                   println(commitInfo.getCommitMessage())
                   println(commit.getChanges())
-		  println(commitInfo.getCommitCurrentJob())
+                  println(commitInfo.getCommitCurrentJob())
                   println(commitInfo.getCommitBuild())
-		  println(commitInfo)
+                  println(commitInfo)
                   print '........----------------====================-------------------...........'
 
 }
 }
 }
+
 def getversion(){
     def commithash = sh label: '', returnStdout: true, script: 'git rev-parse --short HEAD'
     return commithash
-    
+
 }
