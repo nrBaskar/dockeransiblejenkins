@@ -4,15 +4,25 @@ node{
  git credentialsId: 'github', 
  git url: 'https://github.com/SanjaiE/dockeransiblejenkins.git'
 def publisher = LastChanges.getLastChangesPublisher "PREVIOUS_REVISION", "SIDE", "LINE", true, true, "", "", "", "", ""
-def jenkins = Jenkins.getInstance()
-def jobName = "myJob"
-def job = jenkins.getItem(jobName)
-
-println "Job type: ${job.getClass()}"
-println "Is building: ${job.isBuilding()}"
-println "Is in queue: ${job.isInQueue()}"
-println "Last successfull build: ${job.getLastSuccessfulBuild()}"
-println "Last failed build: ${job.getLastFailedBuild()}"
-println "Last build: ${job.getLastBuild()}"
-println "All builds: ${job.getBuilds().collect{ it.getNumber()}}"
-}
+publisher.publishLastChanges()
+def changes = publisher.getLastChanges()
+println(changes.getEscapedDiff())
+     for (commit in changes.getCommits()) {
+                  println(commit)
+                  def jobName = "myJob"
+                  def job = jenkins.getItem(jobName)
+                  def commitInfo = commit.getCommitInfo()
+                  println(commitInfo.getCommitterName())
+                  println(commitInfo.getCommitDate())
+                  println(commitInfo.getCommitMessage())
+                  println(commit.getChanges())
+                  println(commitInfo.getCommitCurrentJob())
+                  println(commitInfo.getCommitBuild())
+                  println (commitInfo.getClass())
+                  println (commitInfo.getBuilding())
+                  println (commitInfo.getInQueue())
+                  println Last successfull build: (job.getLastSuccessfulBuild())
+                  println Last build: (job.getLastBuild())
+                  println(commitInfo)
+                  }
+                  }
