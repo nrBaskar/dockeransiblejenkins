@@ -65,6 +65,8 @@ println(changes.getEscapedDiff())
                   println(commitInfo.getCommitDate())
                   println(commitInfo.getCommitMessage())
                   println(commit.getChanges())
+		  println(commitInfo.getCommitCurrentJob())
+                  println(commitInfo.getCommitBuild())
                   println(commitInfo)
                   print '........----------------====================-------------------...........'
 
