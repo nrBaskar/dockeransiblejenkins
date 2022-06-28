@@ -1,0 +1,24 @@
+pipeline {
+    agent {
+        node {
+            label 'HostAgent'
+        }
+    }
+    /*  tools {
+              'com.cloudbees.jenkins.plugins.customtools.CustomTool' "sonnarqube scanner"
+         }    */
+    stages {
+        stage('Print status') {
+            steps {
+                script {
+                    def job = jenkins.model.Jenkins.instance.getItemByFullName("Job name")
+                    def result = job.getLastBuild().getResult().toString()
+                    env.result = result
+                }
+                cleanWs()
+                sh 'echo "The result printed inside shell : ${result}"'
+                echo "The result printed outside shell: ${result}"
+            }
+        }
+    }
+}
