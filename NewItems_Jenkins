@@ -5,7 +5,7 @@ pipeline {
         }
     }
     /*  tools {
-              'com.cloudbees.jenkins.plugins.customtools.CustomTool' "sonnarqube scanner"
+              maven 'maven 3.8.5'
          }    */
     stages {
         stage('Print status') {
