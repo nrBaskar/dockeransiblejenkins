@@ -1,2 +1,2 @@
 [dockerhost]
-172.31.84.2 ansible_user=ec2-user
+172.31.89.63 ansible_user=ec2-user
