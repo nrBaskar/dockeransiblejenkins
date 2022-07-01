@@ -1,22 +1,103 @@
-pipeline {
-    agent any
-    stages {
-        stage('Hello') {
-            steps {
-                sh "echo 'Hello chennai,1' >> test.html"
-                    }
-            }
+/** Function to send Email*/
+def sendEmail(emailSubject, emailBody, recipients, hasAttachment) {
+    print '...........................Sending Email..................................'    
+    if(hasAttachment){
+        emailext (subject: emailSubject, attachmentsPattern: '**/*.diff',  mimeType: 'text/html', body: emailBody, to: recipients);
+    } else {
+        emailext (subject: emailSubject, mimeType: 'text/html', body: emailBody, to: recipients);
     }
-        post {
-            always{
-                archiveArtifacts artifacts: '*.html', onlyIfSuccessful: true
-                
-                emailext to: "testing.itest@sifycorp.com",
-                subject: "jenkins build:${currentBuild.currentResult}: ${env.JOB_NAME}",
-                body: "${currentBuild.currentResult}: Job ${env.JOB_NAME}\nMore Info can be found here: ${env.BUILD_URL}",
-                attachmentsPattern: '*.html'
-                
-            cleanWs()
+}
+
+pipeline{
+    agent any
+   
+    tools {
+      maven 'maven 3.8.5'
+    }
+    
+    environment {
+      Docker_TAG = getversion()
+    }
+
+    stages{
+	        stage('last-changes'){
+            steps{
+			        git credentialsId: 'github', 
+                    url: 'https://github.com/SanjaiE/dockeransiblejenkins.git'
             }
         }
+        
+        stage('Maven Build'){
+            steps{
+                sh "mvn clean package"
+            }
+        }
+
+         stage('Docker Build'){
+            steps{
+                sh "docker build . -t nrbaskar/hariapp:${Docker_TAG}"
+            }
+        }
+		
+        stage('Dockerhub Push'){
+		   steps{
+		        withCredentials([string(credentialsId: 'docker-hub', variable: 'dockerHubPwd')]) {
+                    sh "docker login -u nrbaskar -p ${dockerHubPwd}"
+                }
+                
+                sh "docker push nrbaskar/hariapp:${Docker_TAG}"
+            }
+			
+        }
+				     
+        stage('docker dev server'){
+            steps{
+                ansiblePlaybook credentialsId: 'dev-server', disableHostKeyChecking: true, extras: "-e DOCKER_TAG=${Docker_TAG}", installation: 'ansible', inventory: 'dev.inv', playbook: 'deploy-docker.yml'
+                
+            }
+        }
+		stage('docker test server'){
+            steps{
+                ansiblePlaybook credentialsId: 'testing-server', disableHostKeyChecking: true, extras: "-e DOCKER_TAG=${Docker_TAG}", installation: 'ansible', inventory: 'test.inv', playbook: 'deploy_test.yml'
+                
+            }
+        }
+    }
+}
+node{
+ stage("last-changes") {
+ def publisher = LastChanges.getLastChangesPublisher "PREVIOUS_REVISION", "SIDE", "LINE", true, true, "", "", "", "", ""
+publisher.publishLastChanges()
+def changes = publisher.getLastChanges()
+println(changes.getEscapedDiff())
+     for (commit in changes.getCommits()) {
+                  println(commit)
+                  def commitInfo = commit.getCommitInfo()
+                  println(commitInfo.getCommitterName())
+                  println(commitInfo.getCommitDate())
+                  println(commitInfo.getCommitMessage())
+                  println(commit.getChanges())
+                  println(commitInfo)
+                  print '........----------------====================-------------------...........'
+def emailSubject = "Jenkins Notification: EVX Development pipeline triggered for Build ID #${env.BUILD_NUMBER}";
+                    def emailBody = """
+                        println Hi EVX DEV Team,</p>
+                        println The EVX development pipeline has been triggered from Repo: ${env.EVX_GIT_REPO} for Branch: ${env.EVX_GIT_DEV_BRANCH}</p>
+                        println Please find the last commit details below:</p>
+                        println ${commitDetails}</p>
+                        println See attached diff of <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b>.</p>
+                    println With Regards,</p>
+                    println devops learning team</p>"""
+                    def recipients = testing.itest@sifycorp.com
+                    sendEmail(emailSubject, emailBody, recipients, true);
+    }
+        } 
+		
+}
+		
+
+def getversion(){
+    def commithash = sh label: '', returnStdout: true, script: 'git rev-parse --short HEAD'
+    return commithash
+    
 }
