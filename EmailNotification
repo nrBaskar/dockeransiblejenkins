@@ -56,12 +56,7 @@ pipeline{
                 
             }
         }
-		stage('docker test server'){
-            steps{
-                ansiblePlaybook credentialsId: 'testing-server', disableHostKeyChecking: true, extras: "-e DOCKER_TAG=${Docker_TAG}", installation: 'ansible', inventory: 'test.inv', playbook: 'deploy_test.yml'
-                
-            }
-        }
+		
     }
 }
 node{
