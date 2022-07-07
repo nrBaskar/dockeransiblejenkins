@@ -9,7 +9,7 @@ node {
            }
 
         } catch(err){
-                emailext body: "${err}", subject: 'Failure', to: 'wilfred.daniel@sifycorp.com'
+                emailext body: "${err}", subject: 'Failure', to: 'testing.itest@sifycorp.com'
             }
 
 }
