@@ -1,0 +1,15 @@
+node {
+        try{
+
+           stage('Build'){
+               echo "Building"
+           }
+            stage('Test'){
+               echo 123
+           }
+
+        } catch(err){
+                emailext body: "${err}", subject: 'Failure', to: 'wilfred.daniel@sifycorp.com'
+            }
+
+}
