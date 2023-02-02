@@ -5,7 +5,7 @@
     <hr>
      
     <label for="Name"><b>Enter Name</b></label>
-    <input type="text" placeholder="Sanjai" name="Name" id="Name" required>
+    <input type="text" placeholder="Suther Sanjai" name="Name" id="Name" required>
     <br>
     
     <label for="mobile"><b>Enter Middle Name</b></label>
@@ -28,10 +28,10 @@
     <button type="submit" class="registerbtn">Register</button>
   </div>
   <div class="container signin">
-    <p>Register Successfully <a href="#">Account Activated</a>.</p>
+    <p>Ansible Register Successfully on 02Feb23 <a href="#">Account Activated</a>.</p>
   </div>
 
-   <h1> Learning pipeline scripts</h1>
+   <h1> Ansible Runs Successfully</h1>
 
   
 </form>
