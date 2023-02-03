@@ -1,6 +1,6 @@
 <form action="action_page.php">
   <div class="container">
-    <h1>Devops paid learning courses </h1>
+    <h1>Devops Courses and List below </h1>
     <p> Successfully commited</p> 
     <hr>
      
