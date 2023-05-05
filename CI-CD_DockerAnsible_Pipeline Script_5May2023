@@ -7,7 +7,8 @@ def sendEmail(emailSubject, emailBody, recipients, hasAttachment) {
         emailext (subject: emailSubject, mimeType: 'text/html', body: emailBody, to: recipients);
     }
 }
-def Docker_TAG
+//Docker_Tag is fetched Latest Version
+def Docker_TAG 
 
 pipeline{
     agent any
@@ -16,6 +17,7 @@ pipeline{
       maven 'maven 3.8.5'
     }
     
+//Environment Variable set for failure mail notification
     environment {
 	  stage_status = "Failure"
       test_status = "Failure"
@@ -33,6 +35,7 @@ pipeline{
             }
         }
     }
+//Git commit details for latest version,Author Name and Date	
     stage("last-changes") {
         steps{
             script{
@@ -54,12 +57,14 @@ pipeline{
             sh "mvn clean package"
         }
     }
+//Create a Docker build	
     stage('Docker Build'){
         steps{
         dockerstatus()
             sh "docker build . -t nrbaskar/hariapp:${Docker_TAG}"   
         }
     }
+//Push the docker image to docker hub	
     stage('Dockerhub Push'){
         steps{
         
@@ -70,7 +75,7 @@ pipeline{
             sh "docker push nrbaskar/hariapp:${Docker_TAG}"
         }
     }
-	
+//Create Ansible playbook for staging server	
 	stage('Staging server'){
         steps{
             script{
@@ -92,6 +97,7 @@ pipeline{
             
         }
     }
+//Regex pattern using for build Success 	
     stage('Stage Deploy'){
         steps{
             script{
@@ -106,6 +112,7 @@ pipeline{
             }
         }
     }
+//Create Ansible playbook for testing server	
     stage('Testing server'){
          steps{
             script{
@@ -126,6 +133,7 @@ pipeline{
             }        
         }
     }
+//Regex pattern using for build Success	
     stage('Test Deploy'){
         steps{
             script{
@@ -140,6 +148,7 @@ pipeline{
             }
         }
     }
+//Create Ansible playbook for UAT server	
     stage('Uat server'){
          steps{
             script{
@@ -163,6 +172,7 @@ pipeline{
             }        
         }
     }
+//Regex pattern using for build Success	
     stage('Uat Deploy'){
         steps{
             script{
@@ -177,6 +187,7 @@ pipeline{
             }
         }
     }
+//Create Ansible playbook for production server	
 	stage('pod server'){
 		steps {
          script{
@@ -200,6 +211,7 @@ pipeline{
             }  
 		}
     }
+//Regex pattern using for build Success	
     stage('Production Deploy'){
         steps{
             script{
@@ -215,12 +227,14 @@ pipeline{
         }
     }
 }
+//Post condition used for success build deployment
   post {
         success{
             script{                
                 DeployNotification()
             }
         } //success
+//Post condition used for failure build deployment and capture the error log 		
         failure {
             script {
 				if(stage_status != "Success"){
@@ -238,6 +252,7 @@ pipeline{
 				DeployNotification()
             } //script
         } //failure
+//Once reject the build mail is triggered  		
         aborted{
             script{  
                 if(uat_status != "Success"){
@@ -251,7 +266,7 @@ pipeline{
         } //aborted
     } //post
 } //Pipeline
-
+//fetch the latest version id with short lenght
 def getversion(){
 
     def commithash = sh(returnStdout: true, script: 'git rev-parse --short HEAD')
@@ -259,6 +274,7 @@ def getversion(){
     return commithash
     
 }
+//To enable the permission for docker.sock
 def dockerstatus() {
 
     sh "sudo service docker start"
@@ -310,7 +326,7 @@ def RejectedBuildNotification(ServerID){
     sendEmail(emailSubject, emailBody, recipients, true);
 }
 def DeployNotification(){
-
+//Failure mail notification for staging server
 	if(stage_status != 'Success'){
 
         def emailSubject = "Jenkins Notification: Staging file deployment for ${env.JOB_NAME} - Failure, Build ID : ${BUILD_NUMBER}";
@@ -331,8 +347,8 @@ def DeployNotification(){
 
         def recipients = TESTERS
         sendEmail(emailSubject, emailBody, recipients, true);
-		
-    }else if(test_status != 'Success'){
+
+    }else if(test_status != 'Success'){//Failure mail notification for testing server	
 
         def emailSubject = "Jenkins Notification: Testing file deployment for ${env.JOB_NAME} - Failure, Build ID : ${BUILD_NUMBER}";
         
@@ -355,7 +371,7 @@ def DeployNotification(){
         def recipients = TESTERS
         sendEmail(emailSubject, emailBody, recipients, true);
 		
-    }else if(uat_status != 'Success'){
+    }else if(uat_status != 'Success'){//Failure mail notification for UAT server	
 
         def emailSubject = "Jenkins Notification: UAT file deployment for ${env.JOB_NAME} - Failure, Build ID : ${BUILD_NUMBER}";
         
@@ -382,7 +398,7 @@ def DeployNotification(){
         def recipients = TESTERS
         sendEmail(emailSubject, emailBody, recipients, true);
 		
-	}else if(pod_status != 'Success'){
+	}else if(pod_status != 'Success'){//Failure mail notification for production server	
 		
 		def emailSubject = "Jenkins Notification: Production file deployment for ${env.JOB_NAME} - Failure, Build ID : ${BUILD_NUMBER}";
         
@@ -412,7 +428,7 @@ def DeployNotification(){
         def recipients = TESTERS
         sendEmail(emailSubject, emailBody, recipients, true);
 		
-	}else{
+	}else{//Success mail notification for production server	
         
         def emailSubject = "Jenkins Notification: Production file deployment for ${env.JOB_NAME} - Success, Build ID : #${BUILD_NUMBER}";
 
@@ -435,7 +451,7 @@ def DeployNotification(){
         sendEmail(emailSubject, emailBody, recipients, true);
     }
 }
-
+//Get (PLAY RECAP with Status) String in logs using REGEX pattern
 def getErrorLogs(){
     // Get the last 80 lines of the log
     def log = currentBuild.rawBuild.getLog(80)
