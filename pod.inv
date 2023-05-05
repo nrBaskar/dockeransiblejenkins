@@ -1,2 +1,2 @@
 [pod]
-10.99.11.16 ansible_user=ec2-user
+10.99.11.15 ansible_user=ec2-user
